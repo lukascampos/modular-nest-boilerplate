@@ -1,5 +1,5 @@
 import { User } from '../../entities/user.entity';
-import { UsersRepository } from '../users.repository';
+import { FindManyUsersInput, UsersRepository } from '../users.repository';
 
 export class InMemoryUsersRepository implements UsersRepository {
   public items: User[] = [];
@@ -32,5 +32,30 @@ export class InMemoryUsersRepository implements UsersRepository {
     }
 
     return user;
+  }
+
+  async findMany(filters: FindManyUsersInput) {
+    const {
+      page = 1,
+      limit = 10,
+      nameOrEmail,
+      role,
+    } = filters;
+
+    let result = this.items;
+
+    if (nameOrEmail) {
+      result = result.filter((user) => user.name.includes(nameOrEmail)
+      || user.email.includes(nameOrEmail));
+    }
+
+    if (role) {
+      result = result.filter((user) => user.role === role);
+    }
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+
+    return result.slice(startIndex, endIndex);
   }
 }
