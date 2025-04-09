@@ -19,6 +19,22 @@ implements AccountDeletionRequestsRepository {
   }
 
   async save(request: AccountDeletionRequest): Promise<void> {
-    this.items.push(request);
+    const index = this.items.findIndex((item) => item.id === request.id);
+
+    if (index >= 0) {
+      this.items[index] = request;
+    } else {
+      this.items.push(request);
+    }
+  }
+
+  async findRequestById(requestId: string): Promise<AccountDeletionRequest | null> {
+    const request = this.items.find((item) => item.id === requestId);
+
+    if (!request) {
+      return null;
+    }
+
+    return request;
   }
 }
