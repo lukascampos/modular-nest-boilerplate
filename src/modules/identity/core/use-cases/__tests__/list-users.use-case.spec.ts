@@ -121,6 +121,26 @@ describe('ListUsersUseCase', () => {
     expect(result.value[0].email).toBe('john@example.com');
   });
 
+  it('should return an empty array if no users are found', async () => {
+    const admin = User.create({
+      name: 'Admin',
+      email: 'admin@example.com',
+      password: '12345678',
+      role: UserRole.ADMIN,
+    });
+
+    await usersRepository.save(admin);
+
+    const result = await sut.execute({
+      adminId: admin.id,
+      nameOrEmail: 'john',
+    });
+
+    expect(result.isRight()).toBe(true);
+    expect(result.value).toHaveLength(0);
+    expect(result.value).toEqual([]);
+  });
+
   it('should return UserNotFoundError if admin user does not exist', async () => {
     const result = await sut.execute({
       adminId: 'non-existent-id',
