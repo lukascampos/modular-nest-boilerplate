@@ -1,5 +1,7 @@
 import { User, UserRole } from '../entities/user.entity';
 
+export const USERS_REPOSITORY = Symbol('USERS_REPOSITORY');
+
 export interface FindManyUsersInput {
   page?: number;
   limit?: number;
@@ -11,6 +13,5 @@ export interface UsersRepository {
   findByEmail(email: string): Promise<User | null>;
   findById(id: string): Promise<User | null>;
   findMany(filters: FindManyUsersInput): Promise<User[]>;
-
   save(user: User): Promise<void>;
 }
