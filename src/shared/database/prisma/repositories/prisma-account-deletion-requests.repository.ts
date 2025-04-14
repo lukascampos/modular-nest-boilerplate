@@ -38,8 +38,16 @@ export class PrismaAccountDeletionRequestsRepository implements AccountDeletionR
   }
 
   async save(request: AccountDeletionRequest): Promise<void> {
-    await this.prisma.accountDeletionRequest.create({
-      data: {
+    await this.prisma.accountDeletionRequest.upsert({
+      where: { id: request.id },
+      update: {
+        id: request.id,
+        userId: request.userId,
+        reason: request.reason,
+        createdAt: request.createdAt,
+        updatedAt: request.updatedAt,
+      },
+      create: {
         id: request.id,
         userId: request.userId,
         reason: request.reason,
