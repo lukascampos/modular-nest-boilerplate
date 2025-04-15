@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { AccountDeletionRequest } from '@/modules/identity/core/entities/account-deletion-request.entity';
 import { AccountDeletionRequestsRepository } from '@/modules/identity/core/repositories/account-deletion-requests.repository';
-import { PrismaService } from '../prisma.service';
 import { PrismaAccountDeletionRequestMapper } from '../mappers/prisma-account-deletion-requests-mapper';
+import { PrismaService } from '@/shared/database/prisma.service';
 
 @Injectable()
 export class PrismaAccountDeletionRequestsRepository implements AccountDeletionRequestsRepository {
