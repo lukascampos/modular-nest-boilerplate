@@ -1,5 +1,3 @@
-export const HASH_COMPARATOR = Symbol('HASH_COMPARATOR');
-
-export interface HashComparator {
-  compare(plain: string, hash: string): Promise<boolean>;
+export abstract class HashComparator {
+  abstract compare(plain: string, hash: string): Promise<boolean>;
 }

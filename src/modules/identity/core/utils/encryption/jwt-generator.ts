@@ -1,3 +1,3 @@
-export interface JwtGenerator {
-  generate(payload: Record<string, unknown>): Promise<string>;
+export abstract class JwtGenerator {
+  abstract generate(payload: Record<string, unknown>): Promise<string>;
 }
