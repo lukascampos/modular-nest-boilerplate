@@ -1,8 +1,9 @@
+import { Injectable } from '@nestjs/common';
 import { Either, left, right } from '@/modules/_shared/utils/either';
 import { InvalidCredentialsError } from '../errors/invalid-credentials.error';
 import { HashComparator } from '../utils/encryption/hash-comparator';
 import { UsersRepository } from '../repositories/users.repository';
-import { JwtGenerator } from '../utils/encryption/jwt-generator';
+import { JwtEncrypter } from '../utils/encryption/jwt-encrypter';
 
 export interface AuthenticateInput {
   email: string;
@@ -18,11 +19,12 @@ interface AuthenticateOutput {
 
 type Output = Either<InvalidCredentialsError, AuthenticateOutput>
 
+@Injectable()
 export class AuthenticateUseCase {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly hashComparator: HashComparator,
-    private readonly jwtGenerator: JwtGenerator,
+    private readonly jwtEncrypter: JwtEncrypter,
   ) {}
 
   async execute({ email, password }: AuthenticateInput): Promise<Output> {
@@ -42,7 +44,7 @@ export class AuthenticateUseCase {
       return left(new InvalidCredentialsError());
     }
 
-    const accessToken = await this.jwtGenerator.generate({ sub: user.id, role: user.role });
+    const accessToken = await this.jwtEncrypter.encrypt({ sub: user.id, role: user.role });
 
     return right({
       accessToken,

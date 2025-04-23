@@ -1,7 +1,7 @@
-import { JwtGenerator } from '../jwt-generator';
+import { JwtEncrypter } from '../jwt-encrypter';
 
-export class FakeJwtGenerator implements JwtGenerator {
-  async generate(payload: Record<string, unknown>): Promise<string> {
+export class FakeJwtGenerator implements JwtEncrypter {
+  async encrypt(payload: Record<string, unknown>): Promise<string> {
     return JSON.stringify(payload);
   }
 }

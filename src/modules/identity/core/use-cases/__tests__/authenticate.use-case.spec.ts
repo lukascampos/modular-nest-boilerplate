@@ -1,5 +1,5 @@
 import { AuthenticateUseCase } from '../authenticate.use-case';
-import { JwtGenerator } from '../../utils/encryption/jwt-generator';
+import { JwtEncrypter } from '../../utils/encryption/jwt-encrypter';
 import { User, UserRole } from '../../entities/user.entity';
 import { InvalidCredentialsError } from '../../errors/invalid-credentials.error';
 import { InMemoryUsersRepository } from '../../repositories/__tests__/in-memory-users.repository';
@@ -7,7 +7,7 @@ import { FakeHasher } from '../../utils/encryption/__tests__/fake-hasher';
 import { FakeJwtGenerator } from '../../utils/encryption/__tests__/fake-jwt-generator';
 
 let authenticateUseCase: AuthenticateUseCase;
-let jwtGenerator: JwtGenerator;
+let jwtGenerator: JwtEncrypter;
 let inMemoryRepository: InMemoryUsersRepository;
 let fakeHasher: FakeHasher;
 
