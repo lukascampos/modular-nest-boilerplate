@@ -5,10 +5,12 @@ import { EncryptionModule } from '@/shared/encryption/encryption.module';
 import { IdentityPersistenceModule } from '../persistence/identity-persistence.module';
 import { AuthenticateUseCase } from '../core/use-cases/authenticate.use-case';
 import { AuthenticateController } from './controllers/authenticate.controller';
+import { ListUsersController } from './controllers/list-users.controller';
+import { ListUsersUseCase } from '../core/use-cases/list-users.use-case';
 
 @Module({
   imports: [IdentityPersistenceModule, EncryptionModule],
-  controllers: [CreateUsersController, AuthenticateController],
-  providers: [CreateUserUseCase, AuthenticateUseCase],
+  controllers: [CreateUsersController, AuthenticateController, ListUsersController],
+  providers: [CreateUserUseCase, AuthenticateUseCase, ListUsersUseCase],
 })
 export class HttpModule {}

@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import { Either, left, right } from '@/modules/_shared/utils/either';
 import { UserRole } from '../entities/user.entity';
 import { UsersRepository } from '../repositories/users.repository';
@@ -12,7 +13,7 @@ export interface ListUsersInput {
   role?: UserRole;
 }
 
-interface ListUsersOutput {
+export interface ListUsersOutput {
   id: string;
   name: string;
   email: string;
@@ -23,6 +24,7 @@ interface ListUsersOutput {
 
 type Output = Either<Error, ListUsersOutput[]>
 
+@Injectable()
 export class ListUsersUseCase {
   constructor(
     private readonly usersRepository: UsersRepository,
