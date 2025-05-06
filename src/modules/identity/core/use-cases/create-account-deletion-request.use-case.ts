@@ -10,7 +10,7 @@ export interface CreateAccountDeletionRequestInput {
   reason: string;
 }
 
-type Output = Either<PendingAccountDeletionRequestExistsError, AccountDeletionRequest>;
+type Output = Either<Error, AccountDeletionRequest>;
 
 export class CreateAccountDeletionRequestUseCase {
   constructor(

@@ -4,12 +4,14 @@ import {
 import { CreateUserUseCase } from '../../core/use-cases/create-user.use-case';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UserAlreadyExistsError } from '../../core/errors/user-already-exists.error';
+import { Public } from '@/modules/_shared/auth/decorators/public.decorator';
 
 @Controller('users')
 export class CreateUsersController {
   constructor(private readonly createUserUseCase: CreateUserUseCase) {}
 
   @Post()
+  @Public()
   async handle(@Body() body: CreateUserDto) {
     const { name, email, password } = body;
 

@@ -2,9 +2,11 @@ import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { APP_GUARD } from '@nestjs/core';
 import { Env } from '@/shared/env/env';
 import { PrismaService } from '@/shared/database/prisma.service';
 import { JwtStrategy } from './jwt/jwt.strategy';
+import { JwtAuthGuard } from './jwt/jwt-auth.guard';
 
 @Global()
 @Module({
@@ -25,6 +27,13 @@ import { JwtStrategy } from './jwt/jwt.strategy';
       },
     }),
   ],
-  providers: [PrismaService, JwtStrategy],
+  providers: [
+    PrismaService,
+    JwtStrategy,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AuthModule {}
