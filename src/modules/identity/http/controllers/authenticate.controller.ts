@@ -1,9 +1,12 @@
 import {
-  Body, Controller, Post,
+  BadRequestException,
+  Body, Controller, HttpCode, Post,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthenticateUseCase } from '../../core/use-cases/authenticate.use-case';
 import { AuthenticateDto } from '../dtos/authenticate.dto';
 import { Public } from '@/modules/_shared/auth/decorators/public.decorator';
+import { InvalidCredentialsError } from '../../core/errors/invalid-credentials.error';
 
 @Controller('/sessions')
 export class AuthenticateController {
@@ -11,6 +14,7 @@ export class AuthenticateController {
 
   @Post()
   @Public()
+  @HttpCode(200)
   async handle(@Body() body: AuthenticateDto) {
     const { email, password } = body;
 
@@ -20,7 +24,14 @@ export class AuthenticateController {
     });
 
     if (result.isLeft()) {
-      throw new Error();
+      const error = result.value;
+
+      switch (error.constructor) {
+        case InvalidCredentialsError:
+          throw new UnauthorizedException(error.message);
+        default:
+          throw new BadRequestException(error.message);
+      }
     }
 
     const { accessToken } = result.value;

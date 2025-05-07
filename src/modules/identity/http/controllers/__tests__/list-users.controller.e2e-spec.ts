@@ -104,7 +104,7 @@ describe('ListUsersController (E2E)', () => {
   });
 });
 
-describe('CreateUserController (E2E) ERROR', () => {
+describe('ListUsersController (E2E) ERROR', () => {
   let app: INestApplication;
   let jwt: JwtService;
   let prisma: PrismaService;
