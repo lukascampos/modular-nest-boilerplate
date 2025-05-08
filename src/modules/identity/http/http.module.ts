@@ -7,10 +7,22 @@ import { AuthenticateUseCase } from '../core/use-cases/authenticate.use-case';
 import { AuthenticateController } from './controllers/authenticate.controller';
 import { ListUsersController } from './controllers/list-users.controller';
 import { ListUsersUseCase } from '../core/use-cases/list-users.use-case';
+import { UpdateAccountController } from './controllers/update-account.controller';
+import { UpdateAccountUseCase } from '../core/use-cases/update-account.use-case';
 
 @Module({
   imports: [IdentityPersistenceModule, EncryptionModule],
-  controllers: [CreateUsersController, AuthenticateController, ListUsersController],
-  providers: [CreateUserUseCase, AuthenticateUseCase, ListUsersUseCase],
+  controllers: [
+    CreateUsersController,
+    AuthenticateController,
+    ListUsersController,
+    UpdateAccountController,
+  ],
+  providers: [
+    CreateUserUseCase,
+    AuthenticateUseCase,
+    ListUsersUseCase,
+    UpdateAccountUseCase,
+  ],
 })
 export class HttpModule {}

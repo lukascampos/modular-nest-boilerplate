@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import { Either, left, right } from '@/modules/_shared/utils/either';
 import { UsersRepository } from '../repositories/users.repository';
 import { UserNotFoundError } from '../errors/user-not-found.error';
@@ -15,6 +16,7 @@ export interface UpdateAccountInput {
 
 type Output = Either<Error, void>;
 
+@Injectable()
 export class UpdateAccountUseCase {
   constructor(
     private readonly usersRepository: UsersRepository,
