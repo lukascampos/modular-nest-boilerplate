@@ -4,21 +4,24 @@ import { User, UserRole } from '../entities/user.entity';
 import { UserAlreadyExistsError } from '../errors/user-already-exists.error';
 import { UsersRepository } from '../repositories/users.repository';
 import { HashGenerator } from '../utils/encryption/hash-generator';
+import { UserFile } from '../entities/user-file.entity';
 
 export interface CreateUserInput {
   name: string;
   email: string;
   password: string;
+  fileId?: string
 }
 
 interface CreateUserOutput {
   id: string;
   name: string;
   email: string;
+  avatar?: UserFile;
   role: string;
 }
 
-type Output = Either<UserAlreadyExistsError, {user: CreateUserOutput}>
+type Output = Either<UserAlreadyExistsError, { user: CreateUserOutput }>
 
 @Injectable()
 export class CreateUserUseCase {
@@ -27,7 +30,9 @@ export class CreateUserUseCase {
     private readonly hashGenerator: HashGenerator,
   ) {}
 
-  async execute({ name, email, password }: CreateUserInput): Promise<Output> {
+  async execute({
+    name, email, password, fileId,
+  }: CreateUserInput): Promise<Output> {
     const userAlreadyExists = await this.usersRepository.findByEmail(email);
 
     if (userAlreadyExists) {
@@ -43,6 +48,15 @@ export class CreateUserUseCase {
       role: UserRole.USER,
     });
 
+    if (fileId) {
+      const avatar = UserFile.create({
+        userId: user.id,
+        fileId,
+      });
+
+      user.avatar = avatar;
+    }
+
     await this.usersRepository.save(user);
 
     return right({
@@ -50,6 +64,7 @@ export class CreateUserUseCase {
         id: user.id,
         name: user.name,
         email: user.email,
+        avatar: user.avatar ?? undefined,
         role: user.role,
       },
     });

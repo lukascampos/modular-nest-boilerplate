@@ -1,4 +1,5 @@
 import { BaseEntity } from '@/modules/_shared/core/entities/base.entity';
+import { UserFile } from './user-file.entity';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
@@ -9,6 +10,7 @@ export interface UserProps {
   name: string;
   email: string;
   password: string;
+  avatar?: UserFile;
   role: UserRole;
   isActive: boolean;
 }
@@ -17,6 +19,7 @@ type CreateUserProps = {
   name: string;
   email: string;
   password: string;
+  avatar?: UserFile
   role: UserRole;
   isActive?: boolean;
 };
@@ -33,7 +36,10 @@ export class User extends BaseEntity<UserProps> {
     updatedAt?: Date,
   ): User {
     const isActive = props.isActive ?? true;
-    return new User({ ...props, isActive }, id, createdAt, updatedAt);
+    return new User({
+      ...props,
+      isActive,
+    }, id, createdAt, updatedAt);
   }
 
   get name(): string {
@@ -61,6 +67,14 @@ export class User extends BaseEntity<UserProps> {
   set password(newPassword: string) {
     this.props.password = newPassword;
     this.touch();
+  }
+
+  get avatar(): UserFile | undefined {
+    return this.props.avatar;
+  }
+
+  set avatar(file: UserFile) {
+    this.props.avatar = file;
   }
 
   get role(): UserRole {

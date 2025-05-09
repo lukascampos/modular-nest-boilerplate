@@ -45,7 +45,7 @@ describe('UpdateAccountController (E2E)', () => {
         newPassword: 'newPassword@123',
       });
 
-    expect(response.statusCode).toBe(200);
+    expect(response.statusCode).toBe(204);
   });
 
   test('[PATCH] /users - BadRequestException (Empty Body)', async () => {

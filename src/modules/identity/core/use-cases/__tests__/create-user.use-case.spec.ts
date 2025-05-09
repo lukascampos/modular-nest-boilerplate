@@ -22,9 +22,13 @@ describe('Create User', () => {
       name: 'John Doe',
       email: 'johndoe@example.com',
       password: '123456',
+      fileId: '1',
     });
 
     expect(result.isRight()).toBe(true);
+    expect(inMemoryRepository.items[0].avatar).toEqual(expect.objectContaining({
+      fileId: '1',
+    }));
   });
 
   it('should hash user password upon creation', async () => {
