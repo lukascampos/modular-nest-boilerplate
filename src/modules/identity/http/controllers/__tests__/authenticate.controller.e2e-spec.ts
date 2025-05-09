@@ -1,47 +1,39 @@
 import { BadRequestException, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { UserRole } from '@prisma/client';
-import { randomUUID } from 'node:crypto';
+import { User } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { AppModule } from '@/app.module';
-import { PrismaService } from '@/shared/database/prisma.service';
 import { left } from '@/modules/_shared/utils/either';
 import { AuthenticateUseCase } from '@/modules/identity/core/use-cases/authenticate.use-case';
+import { UserFactory } from './factories/make-user';
+import { PrismaService } from '@/shared/database/prisma.service';
 
 describe('AuthenticateController (E2E)', () => {
   let app: INestApplication;
-  let prisma: PrismaService;
+  let factory: UserFactory;
+  let user: User;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
+      providers: [UserFactory, PrismaService],
     }).compile();
 
     app = moduleRef.createNestApplication();
 
-    prisma = moduleRef.get(PrismaService);
+    factory = moduleRef.get(UserFactory);
+
+    user = await factory.makePrismaUser({ password: await hash('Test@123', 6) });
 
     await app.init();
   });
 
   test('[POST] /sessions', async () => {
-    const hashedPassword = await hash('Test@123', 10);
-
-    await prisma.user.create({
-      data: {
-        id: randomUUID(),
-        name: 'admin user',
-        email: 'admin@example.com',
-        password: hashedPassword,
-        role: UserRole.ADMIN,
-      },
-    });
-
     const response = await request(app.getHttpServer())
       .post('/sessions')
       .send({
-        email: 'admin@example.com',
+        email: user.email,
         password: 'Test@123',
       });
 
@@ -49,23 +41,11 @@ describe('AuthenticateController (E2E)', () => {
   });
 
   test('[POST] /sessions - UnauthorizedException', async () => {
-    const hashedPassword = await hash('Test@123', 10);
-
-    await prisma.user.create({
-      data: {
-        id: randomUUID(),
-        name: 'admin user',
-        email: 'wrongPassword@example.com',
-        password: hashedPassword,
-        role: UserRole.ADMIN,
-      },
-    });
-
     const response = await request(app.getHttpServer())
       .post('/sessions')
       .send({
         email: 'wrongPassword@example.com',
-        password: 'WrongPassword',
+        password: user.password,
       });
 
     expect(response.statusCode).toBe(401);

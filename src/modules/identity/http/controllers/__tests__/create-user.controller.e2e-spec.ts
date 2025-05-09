@@ -2,50 +2,53 @@ import { BadRequestException, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
-import { PrismaService } from '@/shared/database/prisma.service';
 import { CreateUserUseCase } from '@/modules/identity/core/use-cases/create-user.use-case';
 import { left } from '@/modules/_shared/utils/either';
+import { makeUser, UserFactory } from './factories/make-user';
+import { PrismaService } from '@/shared/database/prisma.service';
 
 describe('CreateUserController (E2E)', () => {
   let app: INestApplication;
-  let prisma: PrismaService;
+  let factory: UserFactory;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
+      providers: [UserFactory, PrismaService],
     }).compile();
 
     app = moduleRef.createNestApplication();
 
-    prisma = moduleRef.get(PrismaService);
+    factory = moduleRef.get(UserFactory);
 
     await app.init();
   });
 
   test('[POST] /users', async () => {
+    const user = makeUser();
+
     const response = await request(app.getHttpServer()).post('/users').send({
-      name: 'John Doe',
-      email: 'john@example.com',
-      password: 'Test@123',
+      name: user.name,
+      email: user.email,
+      password: user.password,
     });
 
     expect(response.statusCode).toBe(201);
   });
 
   test('[POST] /users - ConflictException', async () => {
-    prisma.user.create({
-      data: {
-        id: 'id',
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'Test@123',
-      },
+    const user = await factory.makePrismaUser();
+
+    await request(app.getHttpServer()).post('/users').send({
+      name: user.name,
+      email: user.email,
+      password: user.password,
     });
 
     const response = await request(app.getHttpServer()).post('/users').send({
-      name: 'John Doe',
-      email: 'john@example.com',
-      password: 'Test@123',
+      name: user.name,
+      email: user.email,
+      password: user.password,
     });
 
     expect(response.statusCode).toBe(409);

@@ -2,25 +2,29 @@ import { BadRequestException, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
-import { UserRole } from '@prisma/client';
-import { randomUUID } from 'node:crypto';
+import { UserRole as PrismaUserRole } from '@prisma/client';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/shared/database/prisma.service';
 import { left } from '@/modules/_shared/utils/either';
 import { ListUsersUseCase } from '@/modules/identity/core/use-cases/list-users.use-case';
+import { UserFactory } from './factories/make-user';
+import { UserRole } from '@/modules/identity/core/entities/user.entity';
 
 describe('ListUsersController (E2E)', () => {
   let app: INestApplication;
+  let factory: UserFactory;
   let prisma: PrismaService;
   let jwt: JwtService;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
+      providers: [UserFactory, PrismaService],
     }).compile();
 
     app = moduleRef.createNestApplication();
 
+    factory = moduleRef.get(UserFactory);
     prisma = moduleRef.get(PrismaService);
     jwt = moduleRef.get(JwtService);
 
@@ -28,57 +32,31 @@ describe('ListUsersController (E2E)', () => {
   });
 
   test('[GET] /users', async () => {
-    const user = await prisma.user.create({
-      data: {
-        id: randomUUID(),
-        name: 'admin user',
-        email: 'admin@example.com',
-        password: 'Admin@123',
-        role: UserRole.ADMIN,
-      },
-    });
+    const user = await factory.makePrismaUser({ role: UserRole.ADMIN });
 
     const accessToken = jwt.sign({ sub: user.id, role: user.role });
 
-    await prisma.user.createMany({
-      data: [
+    const response = await request(app.getHttpServer())
+      .get('/users')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toEqual({
+      users: [
         {
-          id: '1',
-          name: 'John Doe',
-          email: 'john@example.com',
-          password: 'Test@123',
-        },
-        {
-          id: '2',
-          name: 'Maria Doe',
-          email: 'maria@example.com',
-          password: 'Test@123',
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          isActive: user.isActive,
+          createdAt: expect.any(String),
         },
       ],
     });
-
-    const response = await request(app.getHttpServer())
-      .get('/users')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'Test@123',
-      });
-
-    expect(response.statusCode).toBe(200);
   });
 
   test('[GET] /users - NotAllowedError', async () => {
-    const user = await prisma.user.create({
-      data: {
-        id: randomUUID(),
-        name: 'admin user',
-        email: 'admin2@example.com',
-        password: 'Admin@123',
-        role: UserRole.ADMIN,
-      },
-    });
+    const user = await factory.makePrismaUser({ role: UserRole.ADMIN });
 
     const accessToken = jwt.sign({ sub: user.id, role: user.role });
 
@@ -87,18 +65,13 @@ describe('ListUsersController (E2E)', () => {
         id: user.id,
       },
       data: {
-        role: UserRole.USER,
+        role: PrismaUserRole.USER,
       },
     });
 
     const response = await request(app.getHttpServer())
       .get('/users')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'Test@123',
-      });
+      .set('Authorization', `Bearer ${accessToken}`);
 
     expect(response.statusCode).toBe(401);
   });
@@ -107,7 +80,7 @@ describe('ListUsersController (E2E)', () => {
 describe('ListUsersController (E2E) ERROR', () => {
   let app: INestApplication;
   let jwt: JwtService;
-  let prisma: PrismaService;
+  let factory: UserFactory;
 
   beforeAll(async () => {
     const mockUseCase = {
@@ -116,6 +89,7 @@ describe('ListUsersController (E2E) ERROR', () => {
 
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
+      providers: [UserFactory, PrismaService],
     })
       .overrideProvider(ListUsersUseCase)
       .useValue(mockUseCase)
@@ -123,33 +97,20 @@ describe('ListUsersController (E2E) ERROR', () => {
 
     app = moduleRef.createNestApplication();
 
-    prisma = moduleRef.get(PrismaService);
+    factory = moduleRef.get(UserFactory);
     jwt = moduleRef.get(JwtService);
 
     await app.init();
   });
 
   test('[POST] /users - BadRequest', async () => {
-    const user = await prisma.user.create({
-      data: {
-        id: randomUUID(),
-        name: 'admin user',
-        email: 'admin3@example.com',
-        password: 'Admin@123',
-        role: UserRole.ADMIN,
-      },
-    });
+    const user = await factory.makePrismaUser({ role: UserRole.ADMIN });
 
     const accessToken = jwt.sign({ sub: user.id, role: user.role });
 
     const response = await request(app.getHttpServer())
       .get('/users')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'Test@123',
-      });
+      .set('Authorization', `Bearer ${accessToken}`);
 
     expect(response.statusCode).toBe(400);
   });

@@ -2,17 +2,17 @@ import { BadRequestException, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
-import { User, UserRole } from '@prisma/client';
-import { randomUUID } from 'node:crypto';
+import { User } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/shared/database/prisma.service';
 import { left } from '@/modules/_shared/utils/either';
 import { UpdateAccountUseCase } from '@/modules/identity/core/use-cases/update-account.use-case';
+import { UserFactory } from './factories/make-user';
 
 describe('UpdateAccountController (E2E)', () => {
   let app: INestApplication;
-  let prisma: PrismaService;
+  let factory: UserFactory;
   let jwt: JwtService;
   let user: User;
   let accessToken: string;
@@ -20,24 +20,17 @@ describe('UpdateAccountController (E2E)', () => {
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
+      providers: [UserFactory, PrismaService],
     }).compile();
 
     app = moduleRef.createNestApplication();
 
-    prisma = moduleRef.get(PrismaService);
+    factory = moduleRef.get(UserFactory);
     jwt = moduleRef.get(JwtService);
 
     await app.init();
 
-    user = await prisma.user.create({
-      data: {
-        id: randomUUID(),
-        name: 'Old Name',
-        email: 'old@email.com',
-        password: await hash('oldPassword@123', 4),
-        role: UserRole.USER,
-      },
-    });
+    user = await factory.makePrismaUser({ password: await hash('oldPassword@123', 6) });
 
     accessToken = jwt.sign({ sub: user.id, role: user.role });
   });
@@ -95,7 +88,7 @@ describe('UpdateAccountController (E2E)', () => {
 describe('UpdateAccountController (E2E) ERROR', () => {
   let app: INestApplication;
   let jwt: JwtService;
-  let prisma: PrismaService;
+  let factory: UserFactory;
 
   beforeAll(async () => {
     const mockUseCase = {
@@ -104,6 +97,7 @@ describe('UpdateAccountController (E2E) ERROR', () => {
 
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
+      providers: [UserFactory, PrismaService],
     })
       .overrideProvider(UpdateAccountUseCase)
       .useValue(mockUseCase)
@@ -111,22 +105,14 @@ describe('UpdateAccountController (E2E) ERROR', () => {
 
     app = moduleRef.createNestApplication();
 
-    prisma = moduleRef.get(PrismaService);
+    factory = moduleRef.get(UserFactory);
     jwt = moduleRef.get(JwtService);
 
     await app.init();
   });
 
   test('[PATCH] /users - BadRequest', async () => {
-    const user = await prisma.user.create({
-      data: {
-        id: randomUUID(),
-        name: 'Alice',
-        email: 'alice@example.com',
-        password: 'Test@123',
-        role: UserRole.USER,
-      },
-    });
+    const user = await factory.makePrismaUser();
 
     const accessToken = jwt.sign({ sub: user.id, role: user.role });
 
