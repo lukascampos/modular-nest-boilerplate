@@ -1,5 +1,6 @@
 import {
   Controller, Body, BadRequestException, Patch,
+  HttpCode,
 } from '@nestjs/common';
 import { UpdateAccountUseCase } from '../../core/use-cases/update-account.use-case';
 import { UpdateAccountDto } from '../dtos/update-account.dto';
@@ -13,6 +14,7 @@ export class UpdateAccountController {
   constructor(private readonly updateAccount: UpdateAccountUseCase) {}
 
   @Patch()
+  @HttpCode(204)
   async handle(
     @CurrentUser() user: UserPayload,
     @Body() body: UpdateAccountDto,
