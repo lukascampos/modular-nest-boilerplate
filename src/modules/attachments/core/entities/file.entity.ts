@@ -2,6 +2,7 @@ import { BaseEntity } from '@/modules/_shared/core/entities/base.entity';
 
 export interface FileProps {
   title: string;
+  mimeType: string;
   url: string;
 }
 
@@ -17,6 +18,10 @@ export class File extends BaseEntity<FileProps> {
 
   get title(): string {
     return this.props.title;
+  }
+
+  get mimeType(): string {
+    return this.props.mimeType;
   }
 
   get url(): string {
