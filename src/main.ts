@@ -10,6 +10,6 @@ async function bootstrap() {
   const envService = app.get(EnvService);
   const port = envService.get('PORT');
 
-  await app.listen(port ?? 3333);
+  await app.listen(port);
 }
 bootstrap();
